@@ -1,0 +1,8 @@
+[submodule "atm-web"]
+	path = atm-web
+	url = https://github.com/plumest/atm-web.git
+	branch = master
+[submodule "bankaccount-api"]
+	path = bankaccount-api
+	url = https://github.com/plumest/bankaccount-api.git
+	branch = main

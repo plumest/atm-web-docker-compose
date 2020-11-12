@@ -1,45 +1,31 @@
 version: "3.7"
 services:
-  atm-web-db:
-    container_name: atm-web-db
+  atm-db:
+    container_name: atm-db
     image: mysql:5.7
     environment:
-      MYSQL_DATABASE: "atm"
       MYSQL_ALLOW_EMPTY_PASSWORD: "true"
     ports:
       - "3306:3306"
     volumes:
-      - ./db/dump:/docker-entrypoint-initdb.d
-      - ./db/mysql-datadir:/var/lib/mysql
+      - .docker/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+      - ./db/data:/var/lib/mysql
       - ./db/config/custom.cnf:/etc/mysql/conf.d/custom.cnf
     restart: unless-stopped
     networks:
-      - atm-frontend
-
-  atm-bank-db:
-    container_name: atm-bank-db
-    image: mysql:5.7
-    environment:
-      MYSQL_DATABASE: "bank"
-      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
-    volumes:
-      - ./bankaccount-api/db/dump:/docker-entrypoint-initdb.d
-      - ./bankaccount-api/db/mysql-datadir:/var/lib/mysql
-      - ./bankaccount-api/db/config/custom.cnf:/etc/mysql/conf.d/custom.cnf
-    restart: unless-stopped
-    networks:
-      - atm-backend
+      - atm-web
 
   bankaccount-api:
     container_name: bankaccount-api
     build:
       context: bankaccount-api/.
       dockerfile: Dockerfile
+    ports:
+    - "8081:8081"
     depends_on:
-      - atm-bank-db
+      - atm-db
     networks:
-      - atm-frontend
-      - atm-backend
+      - atm-web
 
   atm-web:
     container_name: atm-web
@@ -49,15 +35,12 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - atm-web-db
+      - atm-db
       - bankaccount-api
     networks:
-      - atm-frontend
+      - atm-web
 
 networks:
-  atm-frontend:
-    name: atm-frontend
-    driver: bridge
-  atm-backend:
-    name: atm-backend
+  atm-web:
+    name: atm-web
     driver: bridge
